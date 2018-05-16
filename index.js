@@ -8,7 +8,22 @@ let home = new Router()
 
 //子路由1
 home.get('/', async ( ctx ) => {
+  let url = ctx.url
+  //从上下文的request对象中获取
+  let request = ctx.request
+  let req_query = request.query
+  let req_querystring = request.querystring
+
+  //从上下文中直接获取
+  let ctx_query = ctx.query
+  let ctx_querystring = ctx.querystring
+
   let html = `
+    <div>
+      <p>${req_querystring}</p>
+      <p>${JSON.stringify(req_query)}</p>
+      <p>${req_querystring}</p>
+    </div>
     <ul>
       <li><a href="/page/helloworld">/page/helloworld</a></li>
       <li><a href="/page/404">/page/404</a></li>
