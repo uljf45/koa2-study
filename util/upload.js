@@ -36,7 +36,8 @@ function uploadFile( ctx, options ) {
     console.log('文件上传中...')
     let result = {
       success: false,
-      formData: {}
+      message: '',
+      data: null
     }
 
     //解析请求文件事件
@@ -51,6 +52,9 @@ function uploadFile( ctx, options ) {
       file.on('end', function () {
         result.success = true
         result.message = '文件上传成功'
+        result.data = {
+          pictureUrl: `//${ctx.host}/image/${fileType}/${fileName}`
+        }
 
         console.log('文件上传成功!')
         resolve(result)
