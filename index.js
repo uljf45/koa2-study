@@ -12,7 +12,23 @@ app.use(static(
 ))
 
 app.use( async ( ctx ) => {
-  ctx.body = 'hello world'
+  if ( ctx.url === '/index' ) {
+    ctx.cookies.set(
+      'cid',
+      'hello world',
+      {
+        domain: 'localhost',
+        path: '/',
+        maxAge: 10 * 60 * 1000, //cookie有效时长
+        expires: new Date('2018-09-09'), //cookies失效时间
+        httpOnly: false, //是否只用于http请求中获取
+        overwrite: false //是否允许重写
+      }
+    )
+    ctx.body = 'cookie is ok'
+  } else {
+    ctx.body= 'hello world'
+  }
 })
 
 app.listen(3000)
