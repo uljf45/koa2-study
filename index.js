@@ -1,34 +1,8 @@
 const Koa = require('koa') // koa v2
 const app = new Koa()
+const bodyParser = require('koa-bodyparser')
 
-function parseQueryStr( queryStr ) {
-  let queryData = {} 
-  let queryStrList = queryStr.split('&')
-  console.log( queryStrList )
-  for ( let [ index, queryStr ] of queryStrList.entries() ) {
-    let itemList = queryStr.split('=')
-    queryData[ itemList[0] ] = decodeURIComponent(itemList[1])
-  }
-  console.log(queryData)
-  return queryData
-}
-
-function parsePostData( ctx ) {
-  return new Promise((resolve, reject) => {
-    try {
-      let postData = ''
-      ctx.req.addListener('data', (data) => {
-        postData += data
-      })
-      ctx.req.addListener('end', function () {
-        let parseData = parseQueryStr( postData )
-        resolve( parseData )
-      })
-    } catch ( err ) {
-      reject( err )
-    }
-  })
-}
+app.use(bodyParser())
 
 app.use( async ( ctx ) => {
   if ( ctx.url === '/' && ctx.method === 'GET' ) {
@@ -46,7 +20,7 @@ app.use( async ( ctx ) => {
     `
     ctx.body = html
   } else if ( ctx.url === '/' && ctx.method === 'POST' ) {
-    let postData = await parsePostData( ctx )
+    let postData = ctx.request.body 
     ctx.body = postData
   } else {
     ctx.body = '<h1>404!!!</h1>'
