@@ -1,51 +1,58 @@
 const Koa = require('koa') // koa v2
-const fs = require('fs')
-const loggerAsync  = require('./middleware/logger-async')
 const app = new Koa()
-const Router = require('koa-router')
 
-let home = new Router()
+function parseQueryStr( queryStr ) {
+  let queryData = {} 
+  let queryStrList = queryStr.split('&')
+  console.log( queryStrList )
+  for ( let [ index, queryStr ] of queryStrList.entries() ) {
+    let itemList = queryStr.split('=')
+    queryData[ itemList[0] ] = decodeURIComponent(itemList[1])
+  }
+  console.log(queryData)
+  return queryData
+}
 
-//子路由1
-home.get('/', async ( ctx ) => {
-  let url = ctx.url
-  //从上下文的request对象中获取
-  let request = ctx.request
-  let req_query = request.query
-  let req_querystring = request.querystring
+function parsePostData( ctx ) {
+  return new Promise((resolve, reject) => {
+    try {
+      let postData = ''
+      ctx.req.addListener('data', (data) => {
+        postData += data
+      })
+      ctx.req.addListener('end', function () {
+        let parseData = parseQueryStr( postData )
+        resolve( parseData )
+      })
+    } catch ( err ) {
+      reject( err )
+    }
+  })
+}
 
-  //从上下文中直接获取
-  let ctx_query = ctx.query
-  let ctx_querystring = ctx.querystring
-
-  let html = `
-    <div>
-      <p>${req_querystring}</p>
-      <p>${JSON.stringify(req_query)}</p>
-      <p>${req_querystring}</p>
-    </div>
-    <ul>
-      <li><a href="/page/helloworld">/page/helloworld</a></li>
-      <li><a href="/page/404">/page/404</a></li>
-    </ul>
-  `
-  ctx.body = html
+app.use( async ( ctx ) => {
+  if ( ctx.url === '/' && ctx.method === 'GET' ) {
+    let html = `
+      <h1>koa2 request post demo</h1>
+      <form method="POST" action="/">
+        <p>userName</p>
+        <input name = "userName" /><br/>
+        <p>nickName</p>
+        <input name="nickName" /><br/>
+        <p>email</p>
+        <input name="email" /><br/>
+        <button type="submit">submit</button>
+      </form>
+    `
+    ctx.body = html
+  } else if ( ctx.url === '/' && ctx.method === 'POST' ) {
+    let postData = await parsePostData( ctx )
+    ctx.body = postData
+  } else {
+    ctx.body = '<h1>404!!!</h1>'
+  }
 })
 
-//子路由2
-let page = new Router()
-page.get('/404', async ( ctx ) => {
-  ctx.body = '404 page!'
-}).get('/helloworld', async ( ctx ) => {
-  ctx.body = 'helloworld page!'
-})
-
-//装载所有子路由
-let router = new Router()
-router.use('/', home.routes(), home.allowedMethods())
-router.use('/page', page.routes(), page.allowedMethods())
-
-app.use(router.routes()).use(router.allowedMethods())
 
 app.listen(3000)
 console.log('the server is starting at port 3000')
