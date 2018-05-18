@@ -1,24 +1,18 @@
 const Koa = require('koa')
+const jsonp = require('koa-jsonp')
 const app = new Koa()
 
-app.use(async (ctx) => {
-  if (ctx.method === 'GET' && ctx.url.split('?')[0] === '/getData.jsonp') {
-    let callbackName = ctx.query.callback || 'callback'
-    let returnData = {
-      success: true,
-      data: {
-        text: 'this is a jsonp api',
-        time: new Date().getTime()
-      }
-    }
+app.use(jsonp())
 
-    let jsonpStr = `;${callbackName}(${JSON.stringify(returnData)})`
-  
-    ctx.type = 'text/javascript'
-    ctx.body = jsonpStr
-  } else {
-    ctx.body = 'hello jsonp'
+app.use(async (ctx) => {
+  let returnData = {
+    success: true,
+    data: {
+      text: 'this is a jsonp api',
+      time: new Date().getTime()
+    }
   }
+  ctx.body = returnData
 })
 
 app.listen(3000, () => {
