@@ -1,19 +1,38 @@
 const Koa = require('koa')
-const jsonp = require('koa-jsonp')
 const app = new Koa()
 
-app.use(jsonp())
-
-app.use(async (ctx) => {
-  let returnData = {
+const server = async (ctx, next) => {
+  let result = {
     success: true,
-    data: {
-      text: 'this is a jsonp api',
-      time: new Date().getTime()
-    }
+    data: null
   }
-  ctx.body = returnData
-})
+
+  if (ctx.method === 'GET') {
+    if (ctx.url === '/getString.json') {
+      result.data = 'this is string data'
+    } else if (ctx.url === '/getNumber.json') {
+      result.data = 123456
+    } else {
+      result.success = false
+    }
+    ctx.body = result
+    next && next()
+  } else if (ctx.method === 'POST') {
+    if (ctx.url === '/postData.json') {
+      result.data = 'ok'
+    } else {
+      result.success = false
+    }
+    ctx.body = result
+    next && next()
+  } else {
+    ctx.body = 'hello world'
+  }
+} 
+
+app.use(server)
+
+module.exports = app
 
 app.listen(3000, () => {
   console.log('[demo] is starting at port 3000')
